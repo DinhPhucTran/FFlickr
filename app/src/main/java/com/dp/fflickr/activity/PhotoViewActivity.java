@@ -273,7 +273,8 @@ public class PhotoViewActivity extends AppCompatActivity {
         super.onPause();
         if(mHandler != null)
             mHandler.removeCallbacks(mRunable);
-        mSwipeTimer.cancel();
+        if(mSwipeTimer != null)
+            mSwipeTimer.cancel();
     }
 
     @Override
