@@ -62,16 +62,14 @@ public class CommentsViewActivity extends AppCompatActivity implements Events.IC
         int pos = intent.getIntExtra(PhotoViewPagerAdapter.PHOTO_POSITION, 0);
         Glide.with(this).load(mPhotos.get(pos).getMediumUrl()).into(mImage);
 
-        if(Build.VERSION.SDK_INT >= 21) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorPrimary));
-        }
-
         new LoadCommentsTask(this, photoId).execute();
     }
 
     public static void setPhotos(List<Photo> photos) {
         mPhotos = photos;
     }
+
+    public static void addPhotos(List<Photo> photos) { mPhotos.addAll(photos); }
 
     @Override
     public void onCommentsReady(List<Comment> comments, Exception e) {

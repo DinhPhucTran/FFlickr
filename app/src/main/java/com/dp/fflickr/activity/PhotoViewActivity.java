@@ -2,6 +2,7 @@ package com.dp.fflickr.activity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -29,6 +30,7 @@ import com.dp.fflickr.adapter.PhotoAdapter;
 import com.dp.fflickr.adapter.PhotoViewPagerAdapter;
 import com.dp.fflickr.R;
 import com.dp.fflickr.common.Events;
+import com.dp.fflickr.common.Utils;
 import com.dp.fflickr.task.DownloadPhotoTask;
 import com.googlecode.flickrjandroid.FlickrException;
 import com.googlecode.flickrjandroid.people.User;
@@ -36,16 +38,19 @@ import com.googlecode.flickrjandroid.photos.Photo;
 import com.googlecode.flickrjandroid.photos.Size;
 import com.googlecode.flickrjandroid.util.UrlUtilities;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PhotoViewActivity extends AppCompatActivity {
 
-    private int position;
+    private int mPosition;
     private ViewPager viewPager;
     private PhotoViewPagerAdapter adapter;
     private Toolbar toolbar;
@@ -60,6 +65,9 @@ public class PhotoViewActivity extends AppCompatActivity {
     private TextView mDescription;
     private String mPhotoUrl;
     private String mPhotoTitle;
+    private Intent mSetWallpaperIntent;
+    private List<Photo> mPhotos;
+    private List<Target> targets;
 
 
     @Override
@@ -77,6 +85,9 @@ public class PhotoViewActivity extends AppCompatActivity {
         mFavsCount = (TextView)findViewById(R.id.photoViewHeartCount);
         mDescription = (TextView)findViewById(R.id.photoViewDescription);
 
+        mSetWallpaperIntent = new Intent(Intent.ACTION_ATTACH_DATA);
+        targets = new ArrayList<>();
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         window = getWindow();
 
@@ -84,7 +95,7 @@ public class PhotoViewActivity extends AppCompatActivity {
         showToolbar();
 
         Intent intent = getIntent();
-        position = intent.getIntExtra(PhotoAdapter.PHOTO_POSITION, 0);
+        mPosition = intent.getIntExtra(PhotoAdapter.PHOTO_POSITION, 0);
         mPhotoTitle = intent.getStringExtra(PhotoAdapter.PHOTO_TITLE);
 
         setTitle(mPhotoTitle);
@@ -92,22 +103,22 @@ public class PhotoViewActivity extends AppCompatActivity {
         adapter = new PhotoViewPagerAdapter(getApplicationContext());
         viewPager = (ViewPager)findViewById(R.id.photoViewPager);
         viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(position);
+        viewPager.setCurrentItem(mPosition);
 
-        final List<Photo> photos = PhotoViewPagerAdapter.getPhotos();
+        mPhotos = PhotoViewPagerAdapter.getPhotos();
 
         //mFavsCount.setText(photos.get(position).getFavorites() + "");
-        mDescription.setText(photos.get(position).getDescription());
-        mPhotoUrl = getPhotoUrl(photos.get(position));
+        mDescription.setText(Html.fromHtml(mPhotos.get(mPosition).getDescription()));
+        mPhotoUrl = getPhotoUrl(mPhotos.get(mPosition));
 
         mTitle.setText(mPhotoTitle);
-        mUserName.setText("by " + photos.get(position).getOwner().getUsername());
+        mUserName.setText("by " + mPhotos.get(mPosition).getOwner().getUsername());
         mCommentsIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), CommentsViewActivity.class);
-                intent.putExtra(PhotoViewPagerAdapter.PHOTO_ID, photos.get(PhotoViewPagerAdapter.getCurrentPosition()).getId());
-                intent.putExtra(PhotoViewPagerAdapter.PHOTO_POSITION, PhotoViewPagerAdapter.getCurrentPosition());
+                intent.putExtra(PhotoViewPagerAdapter.PHOTO_ID, mPhotos.get(mPosition).getId());
+                intent.putExtra(PhotoViewPagerAdapter.PHOTO_POSITION, mPosition);
                 startActivity(intent);
             }
         });
@@ -120,14 +131,15 @@ public class PhotoViewActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                String title = photos.get(position).getTitle();
+                mPosition = position;
+                String title = mPhotos.get(position).getTitle();
                 setTitle(title);
-                mUserName.setText("by " + photos.get(position).getOwner().getUsername());
+                mUserName.setText("by " + mPhotos.get(position).getOwner().getUsername());
                 mTitle.setText(title);
                 //mFavsCount.setText(photos.get(position).getViews());
-                mDescription.setText(Html.fromHtml(photos.get(position).getDescription()));
-                mPhotoUrl = getPhotoUrl(photos.get(position));
-                mPhotoTitle = photos.get(position).getTitle();
+                mDescription.setText(Html.fromHtml(mPhotos.get(position).getDescription()));
+                mPhotoUrl = getPhotoUrl(mPhotos.get(position));
+                mPhotoTitle = mPhotos.get(position).getTitle();
                 Toast.makeText(PhotoViewActivity.this, mPhotoUrl, Toast.LENGTH_SHORT).show();
             }
 
@@ -138,7 +150,7 @@ public class PhotoViewActivity extends AppCompatActivity {
         });
 
         //force sliding panel draw above navigation bar
-        mSlidingUpPanel.setPanelHeight(124);
+        mSlidingUpPanel.setPanelHeight(120);
         mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
         View decorView = getWindow().getDecorView();
@@ -148,7 +160,7 @@ public class PhotoViewActivity extends AppCompatActivity {
             public void onSystemUiVisibilityChange(int visibility) {
                 if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
                     // TODO: The system bars are visible. Make any desired
-                    mSlidingUpPanel.setPanelHeight(124);
+                    mSlidingUpPanel.setPanelHeight(120);
                     mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                     appBarLayout.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
                     Toast.makeText(PhotoViewActivity.this, "showed", Toast.LENGTH_SHORT).show();
@@ -185,6 +197,34 @@ public class PhotoViewActivity extends AppCompatActivity {
         if (id == R.id.action_download_photo) {
             downloadPhoto();
             return true;
+        }
+
+        if(id == R.id.action_set_photo_as) {
+
+            Target target = new Target() {
+                @Override
+                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                    mSetWallpaperIntent.addCategory(Intent.CATEGORY_DEFAULT);
+                    mSetWallpaperIntent.setDataAndType(Utils.getLocalBitmapUri(bitmap, getApplicationContext()), "image/jpeg");
+                    Toast.makeText(PhotoViewActivity.this, Utils.getLocalBitmapUri(bitmap, getApplicationContext()).toString(), Toast.LENGTH_SHORT).show();
+                    mSetWallpaperIntent.putExtra("mimeType", "image/jpeg");
+                    startActivity(Intent.createChooser(mSetWallpaperIntent, "Set as"));
+                    targets.remove(this);
+                }
+
+                @Override
+                public void onBitmapFailed(Drawable errorDrawable) {
+                    Toast.makeText(PhotoViewActivity.this, "Set failed", Toast.LENGTH_SHORT).show();
+                    targets.remove(this);
+                }
+
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                }
+            };
+            Picasso.with(getApplicationContext()).load(mPhotos.get(mPosition).getLarge1600Url()).into(target);
+            targets.add(target);
         }
 
         return super.onOptionsItemSelected(item);
@@ -237,8 +277,8 @@ public class PhotoViewActivity extends AppCompatActivity {
         }
     }
 
-    private static String getPhotoUrl(Photo photo) {
-        String url = "";
+    private String getPhotoUrl(Photo photo) {
+        String url;
         try {
             url = photo.getOriginalUrl();
         } catch (FlickrException e) {

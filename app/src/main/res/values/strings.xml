@@ -4,6 +4,7 @@
     <string name="title_activity_photo_view">Photo</string>
     <string name="title_activity_comments_view">Comments</string>
     <string name="action_download_photo">Download photo</string>
+    <string name="action_set_photo_as">Set photo as</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

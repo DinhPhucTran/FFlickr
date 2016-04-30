@@ -109,6 +109,10 @@ public class PhotoViewPagerAdapter extends PagerAdapter {
         mPhotos = photos;
     }
 
+    public static void addPhotos(List<Photo> photos) {
+        mPhotos.addAll(photos);
+    }
+
     public static List<Photo> getPhotos() {return mPhotos; }
 
     public static void setIsShowingUi(boolean isShowingUi) {

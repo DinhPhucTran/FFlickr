@@ -29,7 +29,7 @@
             android:name=".activity.PhotoViewActivity"
             android:label="@string/title_activity_photo_view"
             android:parentActivityName=".activity.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar.TransparentNav">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />

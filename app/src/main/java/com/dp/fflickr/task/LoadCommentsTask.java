@@ -1,21 +1,13 @@
 package com.dp.fflickr.task;
 
-import android.content.Context;
 import android.os.AsyncTask;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
 
-import com.dp.fflickr.adapter.CommentAdapter;
 import com.dp.fflickr.common.Events;
 import com.dp.fflickr.common.FlickrHelper;
-import com.dp.fflickr.common.Utilities;
+import com.dp.fflickr.common.Utils;
 import com.googlecode.flickrjandroid.photos.comments.Comment;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -37,7 +29,7 @@ public class LoadCommentsTask extends AsyncTask<Void, Void, List<Comment>>{
     protected List<Comment> doInBackground(Void... params) {
         try {
             return FlickrHelper.getInstance().getFlickr().getCommentsInterface()
-                    .getList(mPhotoId, Utilities.getDateBefore(2), null);
+                    .getList(mPhotoId, Utils.getDateBefore(2), null);
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(TAG, e.toString());

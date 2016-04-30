@@ -18,7 +18,7 @@ import com.dp.fflickr.adapter.PhotoAdapter;
 import com.dp.fflickr.adapter.PhotoViewPagerAdapter;
 import com.dp.fflickr.common.Events;
 import com.dp.fflickr.common.FlickrHelper;
-import com.dp.fflickr.common.Utilities;
+import com.dp.fflickr.common.Utils;
 import com.dp.fflickr.task.LoadInterestingPhotosTask;
 import com.dp.fflickr.R;
 import com.googlecode.flickrjandroid.photos.Photo;
@@ -56,13 +56,13 @@ public class MainActivity extends AppCompatActivity{
 
         //check if device is phone or tablet
         int columnSpan;
-        if (Utilities.isDeviceBiggerThan(getWindow(), 6)){
+        if (Utils.isDeviceBiggerThan(getWindow(), 6)){
             columnSpan = 2;
         }else{
             columnSpan = 1;
         }
 
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         mGridLayoutManager = new GridLayoutManager(this, columnSpan);
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity{
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                //new LoadInterestingPhotosTask(MainActivity.this, mPage).execute();
+                mPage = 1;
                 startTask(getApplicationContext());
             }
         });
@@ -149,6 +149,10 @@ public class MainActivity extends AppCompatActivity{
                 mPhotoAdapter.addPhotos(photos);
                 int curSize = mPhotoAdapter.getItemCount();
                 mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
+
+                PhotoViewPagerAdapter.addPhotos(photos);
+                CommentsViewActivity.addPhotos(photos);
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         }, mPage++).execute();
 
