@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity{
         }
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         mGridLayoutManager = new GridLayoutManager(this, columnSpan);
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity{
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mPage = 1;
+                //new LoadInterestingPhotosTask(MainActivity.this, mPage).execute();
                 startTask(getApplicationContext());
             }
         });
@@ -149,12 +150,8 @@ public class MainActivity extends AppCompatActivity{
                 mPhotoAdapter.addPhotos(photos);
                 int curSize = mPhotoAdapter.getItemCount();
                 mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
-
-                PhotoViewPagerAdapter.addPhotos(photos);
-                CommentsViewActivity.addPhotos(photos);
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         }, mPage++).execute();
-
     }
 }

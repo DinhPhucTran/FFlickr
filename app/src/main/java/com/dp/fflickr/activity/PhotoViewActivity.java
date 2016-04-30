@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -47,16 +48,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PhotoViewActivity extends AppCompatActivity {
 
     private int mPosition;
-    private ViewPager viewPager;
+    private ViewPager mViewPager;
     private PhotoViewPagerAdapter adapter;
     private Toolbar toolbar;
     private static AppBarLayout appBarLayout;
     private static Window window;
-    private SlidingUpPanelLayout mSlidingUpPanel;
+    private static SlidingUpPanelLayout mSlidingUpPanel;
     private TextView mUserName;
     private TextView mTitle;
     private ImageView mUserProfileImage;
@@ -68,6 +71,10 @@ public class PhotoViewActivity extends AppCompatActivity {
     private Intent mSetWallpaperIntent;
     private List<Photo> mPhotos;
     private List<Target> targets;
+    private Handler mHandler;
+    private Runnable mRunable;
+    private static boolean mIsSlideshow;
+    private static Timer mSwipeTimer;
 
 
     @Override
@@ -87,6 +94,7 @@ public class PhotoViewActivity extends AppCompatActivity {
 
         mSetWallpaperIntent = new Intent(Intent.ACTION_ATTACH_DATA);
         targets = new ArrayList<>();
+        mHandler = new Handler();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         window = getWindow();
@@ -101,9 +109,9 @@ public class PhotoViewActivity extends AppCompatActivity {
         setTitle(mPhotoTitle);
 
         adapter = new PhotoViewPagerAdapter(getApplicationContext());
-        viewPager = (ViewPager)findViewById(R.id.photoViewPager);
-        viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(mPosition);
+        mViewPager = (ViewPager)findViewById(R.id.photoViewPager);
+        mViewPager.setAdapter(adapter);
+        mViewPager.setCurrentItem(mPosition);
 
         mPhotos = PhotoViewPagerAdapter.getPhotos();
 
@@ -123,7 +131,7 @@ public class PhotoViewActivity extends AppCompatActivity {
             }
         });
 
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -140,7 +148,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                 mDescription.setText(Html.fromHtml(mPhotos.get(position).getDescription()));
                 mPhotoUrl = getPhotoUrl(mPhotos.get(position));
                 mPhotoTitle = mPhotos.get(position).getTitle();
-                Toast.makeText(PhotoViewActivity.this, mPhotoUrl, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(PhotoViewActivity.this, mPhotoUrl, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -163,7 +171,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                     mSlidingUpPanel.setPanelHeight(120);
                     mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                     appBarLayout.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
-                    Toast.makeText(PhotoViewActivity.this, "showed", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(PhotoViewActivity.this, "showed", Toast.LENGTH_SHORT).show();
                     PhotoViewPagerAdapter.setIsShowingUi(true);
                     //if(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION == 1)
 
@@ -171,7 +179,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                     // TODO: The system bars are NOT visible. Make any desired
                     appBarLayout.animate().translationY(-100).setInterpolator(new AccelerateInterpolator(2)).start();
                     PhotoViewPagerAdapter.setIsShowingUi(false);
-                    Toast.makeText(PhotoViewActivity.this, "hidden", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(PhotoViewActivity.this, "hidden", Toast.LENGTH_SHORT).show();
                     mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
                 }
             }
@@ -192,6 +200,36 @@ public class PhotoViewActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        if (id == R.id.action_slideshow) {
+            if(!mIsSlideshow) {
+                Toast.makeText(PhotoViewActivity.this, "Start slideshow", Toast.LENGTH_SHORT).show();
+                mRunable = new Runnable() {
+                    @Override
+                    public void run() {
+                        mPosition++;
+                        if(mPosition >= mPhotos.size())
+                            mPosition = 0;
+                        mViewPager.setCurrentItem(mPosition, true);
+                        Toast.makeText(PhotoViewActivity.this, mPosition + "", Toast.LENGTH_SHORT).show();
+                        //mHandler.postDelayed(mRunable, 2000);
+                    }
+                };
+                mSwipeTimer = new Timer();
+                mSwipeTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mHandler.post(mRunable);
+                    }
+                }, 3000, 5000);
+                mIsSlideshow = true;
+                hideToolbar();
+                PhotoViewPagerAdapter.setIsShowingUi(false);
+            } else {
+                mIsSlideshow = false;
+                mSwipeTimer.cancel();
+            }
+        }
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_download_photo) {
@@ -231,6 +269,20 @@ public class PhotoViewActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if(mHandler != null)
+            mHandler.removeCallbacks(mRunable);
+        mSwipeTimer.cancel();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //mHandler.postDelayed(mRunable, 2000);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         PhotoViewPagerAdapter.setIsShowingUi(true);
@@ -249,6 +301,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         }
+        mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
 
     public static void hideToolbar(){
@@ -275,6 +328,7 @@ public class PhotoViewActivity extends AppCompatActivity {
                                 | View.SYSTEM_UI_FLAG_IMMERSIVE);
             }
         }
+        mSlidingUpPanel.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
     }
 
     private String getPhotoUrl(Photo photo) {
@@ -342,4 +396,13 @@ public class PhotoViewActivity extends AppCompatActivity {
         return profileImageUrl;
     }
 
+    public static void stopSlideshow() {
+        mSwipeTimer.cancel();
+    }
+
+    public static boolean getIsSlideshow() { return mIsSlideshow; }
+
+    public static void setIsSlideshow(boolean isSlideshow) {
+        mIsSlideshow = isSlideshow;
+    }
 }

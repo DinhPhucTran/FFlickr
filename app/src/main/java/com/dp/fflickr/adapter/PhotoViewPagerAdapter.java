@@ -80,10 +80,30 @@ public class PhotoViewPagerAdapter extends PagerAdapter {
                             PhotoViewActivity.showToolbar();
                             mIsShowingUi = true;
                         }
+
+                        if(PhotoViewActivity.getIsSlideshow()) {
+                            PhotoViewActivity.stopSlideshow();
+                            PhotoViewActivity.setIsSlideshow(false);
+                            Toast.makeText(mContext, "Stop slideshow", Toast.LENGTH_SHORT).show();
+                        }
+
                     }
 
                     @Override
                     public void onOutsidePhotoTap() {
+                        if(mIsShowingUi) {
+                            PhotoViewActivity.hideToolbar();
+                            mIsShowingUi = false;
+                        } else {
+                            PhotoViewActivity.showToolbar();
+                            mIsShowingUi = true;
+                        }
+
+                        if(PhotoViewActivity.getIsSlideshow()) {
+                            PhotoViewActivity.stopSlideshow();
+                            PhotoViewActivity.setIsSlideshow(false);
+                            Toast.makeText(mContext, "Stop slideshow", Toast.LENGTH_SHORT).show();
+                        }
 
                     }
                 });

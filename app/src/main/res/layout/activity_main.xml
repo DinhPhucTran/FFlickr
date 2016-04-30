@@ -39,10 +39,4 @@
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="24dp"
-        android:background="@drawable/background_gradient"
-        android:layout_gravity="bottom"/>
-
 </android.support.design.widget.CoordinatorLayout>

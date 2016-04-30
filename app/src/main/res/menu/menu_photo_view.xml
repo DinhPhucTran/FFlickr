@@ -3,15 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".activity.PhotoViewActivity">
+
+    <item
+        android:id="@+id/action_slideshow"
+        android:orderInCategory="1"
+        android:title="@string/action_slideshow"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/action_set_photo_as"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
         android:title="@string/action_set_photo_as"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_download_photo"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         android:title="@string/action_download_photo"
         app:showAsAction="never" />
 </menu>
