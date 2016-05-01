@@ -2,7 +2,6 @@ package com.dp.fflickr.activity;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -17,21 +16,21 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.dp.fflickr.R;
 import com.dp.fflickr.adapter.PhotoAdapter;
 import com.dp.fflickr.adapter.PhotoViewPagerAdapter;
 import com.dp.fflickr.common.Events;
 import com.dp.fflickr.common.FlickrHelper;
 import com.dp.fflickr.common.Utils;
 import com.dp.fflickr.task.LoadInterestingPhotosTask;
-import com.dp.fflickr.R;
 import com.googlecode.flickrjandroid.photos.Photo;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity{
-
-    public static final String TAG = "fflickr/MainActivity";
-
+/**
+ * Created by DinhPhuc on 01/05/2016.
+ */
+public class PhotoGridActivity extends AppCompatActivity {
     private static RecyclerView mRecyclerView;
     private static PhotoAdapter mPhotoAdapter;
     private static SwipeRefreshLayout mSwipeRefreshLayout;
@@ -51,10 +50,10 @@ public class MainActivity extends AppCompatActivity{
 
         appBar = (AppBarLayout)findViewById(R.id.mainActivityAppBar);
         //if(Build.VERSION.SDK_INT >= 19) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
-            if(params != null)
-                params.topMargin = 24;
-            appBar.getLayoutParams().height += 24;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
+        if(params != null)
+            params.topMargin = 24;
+        appBar.getLayoutParams().height += 24;
         //}
 
         //check if device is phone or tablet
@@ -146,30 +145,8 @@ public class MainActivity extends AppCompatActivity{
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(mPhotoAdapter != null) {
-            PhotoViewPagerAdapter.setPhotos(mPhotoAdapter.getDataSet());
-            CommentsViewActivity.setPhotos(mPhotoAdapter.getDataSet());
-        }
-    }
 
+    public void startTask(final Context context) {
 
-    public static void startTask(final Context context) {
-
-        new LoadInterestingPhotosTask(new Events.IPhotosReadyListener() {
-            @Override
-            public void onPhotosReady(List<Photo> photos, Exception e) {
-                if (FlickrHelper.getInstance().handleFlickrUnavailable(context, e)) {
-                    return;
-                }
-
-                mPhotoAdapter.addPhotos(photos);
-                int curSize = mPhotoAdapter.getItemCount();
-                mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
-        }, mPage++).execute();
     }
 }

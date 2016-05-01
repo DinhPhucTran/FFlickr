@@ -5,32 +5,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dp.fflickr.R;
 import com.dp.fflickr.adapter.PhotoAdapter;
 import com.dp.fflickr.adapter.PhotoViewPagerAdapter;
 import com.dp.fflickr.common.Events;
 import com.dp.fflickr.common.FlickrHelper;
 import com.dp.fflickr.common.Utils;
 import com.dp.fflickr.task.LoadInterestingPhotosTask;
-import com.dp.fflickr.R;
+import com.dp.fflickr.task.SearchPhotoTask;
 import com.googlecode.flickrjandroid.photos.Photo;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity{
+public class SearchActivity extends PhotoGridActivity {
 
-    public static final String TAG = "fflickr/MainActivity";
+    public static final String SEARCH = "fflickr.Search";
 
     private static RecyclerView mRecyclerView;
     private static PhotoAdapter mPhotoAdapter;
@@ -40,21 +42,24 @@ public class MainActivity extends AppCompatActivity{
     private boolean loading = true;
     private int firstVisiblesItems, visibleItemCount, totalItemCount, previousTotal, visibleThreshold;
     private GridLayoutManager mGridLayoutManager;
+    private String mSearchQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_search);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        handleIntent(getIntent());
         mPage = 1;
 
         appBar = (AppBarLayout)findViewById(R.id.mainActivityAppBar);
         //if(Build.VERSION.SDK_INT >= 19) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
-            if(params != null)
-                params.topMargin = 24;
-            appBar.getLayoutParams().height += 24;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
+        if(params != null)
+            params.topMargin = 24;
+        appBar.getLayoutParams().height += 24;
         //}
 
         //check if device is phone or tablet
@@ -121,55 +126,60 @@ public class MainActivity extends AppCompatActivity{
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        //searchView.setSubmitButtonEnabled(true);
-        return true;
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        handleIntent(intent);
+        //Toast.makeText(SearchActivity.this, "New search", Toast.LENGTH_SHORT).show();
+        startNewSearchTask(getApplicationContext());
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(mPhotoAdapter != null) {
-            PhotoViewPagerAdapter.setPhotos(mPhotoAdapter.getDataSet());
-            CommentsViewActivity.setPhotos(mPhotoAdapter.getDataSet());
+    private void handleIntent(Intent intent) {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            mSearchQuery = query;
+            setTitle(query);
         }
     }
 
 
-    public static void startTask(final Context context) {
-
-        new LoadInterestingPhotosTask(new Events.IPhotosReadyListener() {
+    public void startTask(final Context context) {
+        new SearchPhotoTask(new Events.IPhotosReadyListener() {
             @Override
             public void onPhotosReady(List<Photo> photos, Exception e) {
                 if (FlickrHelper.getInstance().handleFlickrUnavailable(context, e)) {
                     return;
                 }
 
-                mPhotoAdapter.addPhotos(photos);
-                int curSize = mPhotoAdapter.getItemCount();
-                mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
-                mSwipeRefreshLayout.setRefreshing(false);
+                if(photos != null) {
+                    mPhotoAdapter.addPhotos(photos);
+                    int curSize = mPhotoAdapter.getItemCount();
+                    mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
             }
-        }, mPage++).execute();
+        },mSearchQuery, mPage++).execute();
     }
+
+    public void startNewSearchTask(final Context context) {
+        mPage = 1;
+        new SearchPhotoTask(new Events.IPhotosReadyListener() {
+            @Override
+            public void onPhotosReady(List<Photo> photos, Exception e) {
+                if (FlickrHelper.getInstance().handleFlickrUnavailable(context, e)) {
+                    return;
+                }
+
+                if(photos != null) {
+                    mPhotoAdapter.setDataSet(photos);
+                    mPhotoAdapter.notifyDataSetChanged();
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
+                Toast.makeText(SearchActivity.this, "Search for \"" + mSearchQuery + "\"", Toast.LENGTH_SHORT).show();
+                PhotoViewPagerAdapter.setPhotos(photos);
+                CommentsViewActivity.setPhotos(photos);
+            }
+        },mSearchQuery, mPage).execute();
+    }
+
 }
