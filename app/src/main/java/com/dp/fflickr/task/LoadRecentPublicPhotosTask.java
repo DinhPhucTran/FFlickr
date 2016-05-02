@@ -31,7 +31,7 @@ public class LoadRecentPublicPhotosTask extends AsyncTask<Void, Void, List<Photo
     @Override
     protected List<Photo> doInBackground(Void... params) {
         try {
-            FlickrHelper.getInstance().getFlickr().getPhotosInterface().getRecent(Constants.EXTRAS, Constants.PHOTOS_PER_PAGE, mPage);
+            return FlickrHelper.getInstance().getFlickr().getPhotosInterface().getRecent(Constants.EXTRAS, Constants.PHOTOS_PER_PAGE, mPage);
         } catch (IOException e) {
             e.printStackTrace();
             mException = e;

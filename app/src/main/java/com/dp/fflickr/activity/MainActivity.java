@@ -49,13 +49,13 @@ public class MainActivity extends AppCompatActivity{
         setSupportActionBar(toolbar);
         mPage = 1;
 
-        appBar = (AppBarLayout)findViewById(R.id.mainActivityAppBar);
-        //if(Build.VERSION.SDK_INT >= 19) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
-            if(params != null)
-                params.topMargin = 24;
-            appBar.getLayoutParams().height += 24;
-        //}
+//        appBar = (AppBarLayout)findViewById(R.id.mainActivityAppBar);
+//        //if(Build.VERSION.SDK_INT >= 19) {
+//            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)toolbar.getLayoutParams();
+//            if(params != null)
+//                params.topMargin = 24;
+//            appBar.getLayoutParams().height += 24;
+//        //}
 
         //check if device is phone or tablet
         int columnSpan;
@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity{
         }
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 
         mGridLayoutManager = new GridLayoutManager(this, columnSpan);
 
@@ -165,9 +165,11 @@ public class MainActivity extends AppCompatActivity{
                     return;
                 }
 
-                mPhotoAdapter.addPhotos(photos);
-                int curSize = mPhotoAdapter.getItemCount();
-                mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
+                if (photos != null) {
+                    mPhotoAdapter.addPhotos(photos);
+                    int curSize = mPhotoAdapter.getItemCount();
+                    mPhotoAdapter.notifyItemRangeInserted(curSize, photos.size() - 1);
+                }
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         }, mPage++).execute();

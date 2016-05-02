@@ -29,7 +29,7 @@ public class LoadCommentsTask extends AsyncTask<Void, Void, List<Comment>>{
     protected List<Comment> doInBackground(Void... params) {
         try {
             return FlickrHelper.getInstance().getFlickr().getCommentsInterface()
-                    .getList(mPhotoId, Utils.getDateBefore(2), null);
+                    .getList(mPhotoId, null, null);
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(TAG, e.toString());

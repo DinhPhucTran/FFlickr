@@ -89,7 +89,6 @@ public class PhotoViewActivity extends AppCompatActivity {
         mTitle = (TextView)findViewById(R.id.photoViewTitle);
         mUserProfileImage = (ImageView)findViewById(R.id.photoViewUSerProfileImage);
         mCommentsIcon = (ImageView)findViewById(R.id.photoViewIcComments);
-        mFavsCount = (TextView)findViewById(R.id.photoViewHeartCount);
         mDescription = (TextView)findViewById(R.id.photoViewDescription);
 
         mSetWallpaperIntent = new Intent(Intent.ACTION_ATTACH_DATA);
@@ -115,7 +114,6 @@ public class PhotoViewActivity extends AppCompatActivity {
 
         mPhotos = PhotoViewPagerAdapter.getPhotos();
 
-        //mFavsCount.setText(photos.get(position).getFavorites() + "");
         mDescription.setText(Html.fromHtml(mPhotos.get(mPosition).getDescription()));
         mPhotoUrl = getPhotoUrl(mPhotos.get(mPosition));
 

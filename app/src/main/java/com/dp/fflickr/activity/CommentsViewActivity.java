@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -41,15 +42,9 @@ public class CommentsViewActivity extends AppCompatActivity implements Events.IC
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
 
         mImage = (ImageView)findViewById(R.id.commentViewImage);
         mProgressBar = (ProgressBar)findViewById(R.id.commentViewProgress);
@@ -79,6 +74,7 @@ public class CommentsViewActivity extends AppCompatActivity implements Events.IC
             }
         });
         mAdapter.setComments(comments);
+        mAdapter.notifyDataSetChanged();
         mRecyclerView.setAdapter(mAdapter);
         mProgressBar.setVisibility(View.INVISIBLE);
     }

@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.MainActivity">
+    tools:context=".activity.MainActivity"
+    android:fitsSystemWindows="true">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay"
         android:id="@+id/mainActivityAppBar">
 
@@ -27,14 +28,15 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:id="@+id/mainSwipeRefresh"
-        android:background="@color/colorDarkBackground">
+        android:background="@color/colorDarkBackground"
+        android:fitsSystemWindows="true"
+        android:clipToPadding="false"
+        android:clipChildren="false">
 
         <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/mainRecyclerView"
-            android:paddingBottom="48dp"
-            android:clipToPadding="false">
+            android:id="@+id/mainRecyclerView">
         </android.support.v7.widget.RecyclerView>
 
     </android.support.v4.widget.SwipeRefreshLayout>
